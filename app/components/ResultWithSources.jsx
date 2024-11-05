@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 const MessageItem = ({ message, pngFile, isLast }) => {
-  const userImage = "/assets/images/green-square.png";
+  const userImage = "/assets/images/human.png";
   const botImage = `/assets/images/${pngFile}.png`;
   const [showSources, setShowSources] = useState(false);
 

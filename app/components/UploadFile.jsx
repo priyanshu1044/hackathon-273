@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
-const UploadFile = ({ endpoint, text }) => {
+const UploadFile = ({ endpoint, text, setUploadedFileName }) => {
     const fileInput = useRef(null);
     const [file, setFile] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0); // Progress state
+    const [loading, setLoading] = useState(false); // State for loading
 
     const handleFileSelect = async (event) => {
         const selectedFile = Array.from(event.target.files);
@@ -14,20 +13,14 @@ const UploadFile = ({ endpoint, text }) => {
             console.log("No File found!");
             return;
         }
-        
-        setLoading(true);
-        const progressInterval = startSimulatedProgress(); // Start progress simulation
-        
+
+        // Update the uploaded file name in the parent component
+        setUploadedFileName(selectedFile[0].name); // Set the file name
+
+        setLoading(true);  // Set loading state to true
         await handleSubmit(endpoint, selectedFile);
         setFile(selectedFile);
-        
-        clearInterval(progressInterval); // Clear interval once upload is complete
-        setUploadProgress(100); // Set progress to 100% once done
-        
-        setTimeout(() => {
-            setLoading(false);
-            setUploadProgress(0); // Reset progress after a short delay
-        }, 1000);
+        setLoading(false);  // Set loading state to false
     };
 
     const triggerFileInputClick = () => {
@@ -53,22 +46,6 @@ const UploadFile = ({ endpoint, text }) => {
         }
     };
 
-    const startSimulatedProgress = () => {
-        setUploadProgress(0);
-        
-        const interval = setInterval(() => {
-            setUploadProgress((prevProgress) => {
-                if (prevProgress >= 95) {
-                    clearInterval(interval);
-                    return prevProgress;
-                }
-                return prevProgress + 5; // Increment progress
-            });
-        }, 500);
-
-        return interval;
-    };
-
     return (
         <div className="relative">
             <input
@@ -92,16 +69,7 @@ const UploadFile = ({ endpoint, text }) => {
 
             {loading && (
                 <div className="absolute bottom-0 left-0 w-full h-2 bg-gray-200">
-                    <div
-                        className={`h-full ${uploadProgress === 100 ? 'bg-green-500' : 'bg-blue-500'} transition-all duration-500`}
-                        style={{ width: `${uploadProgress}%` }}
-                    />
-                </div>
-            )}
-
-            {loading && uploadProgress === 100 && (
-                <div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
-                    Uploaded Successfully...
+                    <div className="h-full bg-blue-500 animate-pulse" style={{ width: '100%' }} />
                 </div>
             )}
         </div>

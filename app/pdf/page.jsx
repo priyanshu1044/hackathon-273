@@ -13,7 +13,7 @@ import "../globals.css";
 
 // This functional component is responsible for loading PDFs
 const PDFLoader = () => {
-  // Managing prompt, messages, and error states with useState
+  // Managing prompt, messages, error states, and uploaded file name
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -22,25 +22,21 @@ const PDFLoader = () => {
     },
   ]);
   const [error, setError] = useState("");
+  const [uploadedFileName, setUploadedFileName] = useState(""); // State for the uploaded file name
 
-  // This function updates the prompt value when the user types in the prompt box
   const handlePromptChange = (e) => {
     setPrompt(e.target.value);
   };
 
-  // This function handles the submission of the form when the user hits 'Enter' or 'Submit'
-  // It sends a GET request to the provided endpoint with the current prompt as the query
   const handleSubmit = async (endpoint) => {
     try {
       console.log(`sending ${prompt}`);
       console.log(`using ${endpoint}`);
 
-      // A GET request is sent to the backend
       const response = await fetch(`/api/${endpoint}`, {
         method: "GET",
       });
 
-      // The response from the backend is parsed as JSON
       const searchRes = await response.json();
       console.log(searchRes);
       setError(""); // Clear any existing error messages
@@ -50,19 +46,15 @@ const PDFLoader = () => {
     }
   };
 
-  // This function handles the submission of the user's prompt when the user hits 'Enter' or 'Submit'
-  // It sends a POST request to the provided endpoint with the current prompt in the request body
   const handleSubmitPrompt = async (endpoint) => {
     try {
       setPrompt("");
 
-      // Push the user's message into the messages array
       setMessages((prevMessages) => [
         ...prevMessages,
         { text: prompt, type: "user", sourceDocuments: null },
       ]);
 
-      // A POST request is sent to the backend with the current prompt in the request body
       const response = await fetch(`/api/${endpoint}`, {
         method: "POST",
         headers: {
@@ -71,17 +63,13 @@ const PDFLoader = () => {
         body: JSON.stringify({ input: prompt }),
       });
 
-      // Throw an error if the HTTP status is not OK
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Parse the response from the backend as JSON
       const searchRes = await response.json();
-
       console.log({ searchRes });
 
-      // Push the response into the messages array
       setMessages((prevMessages) => [
         ...prevMessages,
         {
@@ -98,23 +86,23 @@ const PDFLoader = () => {
     }
   };
 
-  // The component returns a two column layout with various child components
   return (
     <>
       <Title headingText="CHAT-PDF" />
       <TwoColumnLayout
-
         leftChildren={
           <>
             <PageHeader
-
               heading="Ask Anything about PDF"
               boldText="Ask your question?"
-              description="This tool will
-            let you ask anything contained in a PDF document. This tool uses
-            Embeddings, Pinecone, VectorDBQAChain, and VectorStoreAgents."
+              description="This tool will let you ask anything contained in a PDF document. This tool uses Embeddings, Pinecone, VectorDBQAChain, and VectorStoreAgents."
             />
-            <UploadFile endpoint={"pdf-upload"} text = {"Upload Book 📙"}/>
+            <UploadFile endpoint={"pdf-upload"} text={"Upload Book 📙"} setUploadedFileName={setUploadedFileName} />
+            {uploadedFileName && (
+              <div className="mt-4 text-lg text-gray-700">
+                Uploaded File: <strong>{uploadedFileName}</strong>
+              </div>
+            )}
           </>
         }
         rightChildren={
@@ -124,7 +112,6 @@ const PDFLoader = () => {
               prompt={prompt}
               handlePromptChange={handlePromptChange}
               handleSubmit={() => handleSubmitPrompt("/pdf-query")}
-              // handleSubmit={() => handleSubmitQuery("/pdfquery-agent")}
               placeHolderText={"Ask your question?"}
               error={error}
             />
